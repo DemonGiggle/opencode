@@ -11,6 +11,7 @@ import { Provider } from "../../src/provider"
 import { ProviderID, ModelID } from "../../src/provider/schema"
 import { Filesystem } from "../../src/util"
 import { Env } from "../../src/env"
+import { Flag } from "../../src/flag/flag"
 import { Effect } from "effect"
 import { AppRuntime } from "../../src/effect/app-runtime"
 import { makeRuntime } from "../../src/effect/run-service"
@@ -163,6 +164,54 @@ test("enabled_providers restricts to only listed providers", async () => {
       expect(providers[ProviderID.openai]).toBeUndefined()
     },
   })
+})
+
+test("OPENCODE_ENABLE_DEFAULT_MODELS disabled blocks models.dev providers", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await Bun.write(
+        path.join(dir, "opencode.json"),
+        JSON.stringify({
+          $schema: "https://opencode.ai/config.json",
+          provider: {
+            internal: {
+              name: "Internal AI",
+              api: "http://internal.example/v1",
+              env: [],
+              models: {
+                "internal-model": {},
+              },
+            },
+          },
+        }),
+      )
+    },
+  })
+
+  const originalEnabled = Flag.OPENCODE_ENABLE_DEFAULT_MODELS
+  const originalPath = Flag.OPENCODE_MODELS_PATH
+  ;(Flag as { OPENCODE_ENABLE_DEFAULT_MODELS: boolean }).OPENCODE_ENABLE_DEFAULT_MODELS = false
+  ;(Flag as { OPENCODE_MODELS_PATH: string | undefined }).OPENCODE_MODELS_PATH = undefined
+  ModelsDev.Data.reset()
+
+  try {
+    await Instance.provide({
+      directory: tmp.path,
+      init: async () => {
+        Env.set("ANTHROPIC_API_KEY", "test-api-key")
+      },
+      fn: async () => {
+        const providers = await Provider.list()
+        expect(providers["anthropic"]).toBeUndefined()
+        expect(providers["internal"]).toBeDefined()
+        expect(providers["internal"].models["internal-model"]).toBeDefined()
+      },
+    })
+  } finally {
+    ;(Flag as { OPENCODE_ENABLE_DEFAULT_MODELS: boolean }).OPENCODE_ENABLE_DEFAULT_MODELS = originalEnabled
+    ;(Flag as { OPENCODE_MODELS_PATH: string | undefined }).OPENCODE_MODELS_PATH = originalPath
+    ModelsDev.Data.reset()
+  }
 })
 
 test("model whitelist filters models for provider", async () => {

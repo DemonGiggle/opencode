@@ -128,7 +128,13 @@ const fetchApi = async () => {
 }
 
 export const Data = lazy(async () => {
-  const result = await Filesystem.readJson(Flag.OPENCODE_MODELS_PATH ?? filepath).catch(() => {})
+  const modelsPath = Flag.OPENCODE_MODELS_PATH
+  if (modelsPath) {
+    const result = await Filesystem.readJson(modelsPath).catch(() => {})
+    if (result) return result
+  }
+  if (!Flag.OPENCODE_ENABLE_DEFAULT_MODELS) return {}
+  const result = await Filesystem.readJson(filepath).catch(() => {})
   if (result) return result
   // @ts-ignore
   const snapshot = await import("./models-snapshot.js")
@@ -137,7 +143,7 @@ export const Data = lazy(async () => {
   if (snapshot) return snapshot
   if (Flag.OPENCODE_DISABLE_MODELS_FETCH) return {}
   return Flock.withLock(`models-dev:${filepath}`, async () => {
-    const result = await Filesystem.readJson(Flag.OPENCODE_MODELS_PATH ?? filepath).catch(() => {})
+    const result = await Filesystem.readJson(modelsPath ?? filepath).catch(() => {})
     if (result) return result
     const result2 = await fetchApi()
     if (result2.ok) {
@@ -155,6 +161,7 @@ export async function get() {
 }
 
 export async function refresh(force = false) {
+  if (!Flag.OPENCODE_ENABLE_DEFAULT_MODELS) return Data.reset()
   if (skip(force)) return Data.reset()
   await Flock.withLock(`models-dev:${filepath}`, async () => {
     if (skip(force)) return Data.reset()
@@ -169,7 +176,11 @@ export async function refresh(force = false) {
   })
 }
 
-if (!Flag.OPENCODE_DISABLE_MODELS_FETCH && !process.argv.includes("--get-yargs-completions")) {
+if (
+  !Flag.OPENCODE_DISABLE_MODELS_FETCH &&
+  Flag.OPENCODE_ENABLE_DEFAULT_MODELS &&
+  !process.argv.includes("--get-yargs-completions")
+) {
   void refresh()
   setInterval(
     async () => {
