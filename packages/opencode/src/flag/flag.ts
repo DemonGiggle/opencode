@@ -5,6 +5,12 @@ function truthy(key: string) {
   return value === "true" || value === "1"
 }
 
+function enabledByDefault(key: string) {
+  const value = process.env[key]?.toLowerCase()
+  if (value === undefined) return true
+  return value !== "false" && value !== "0"
+}
+
 function falsy(key: string) {
   const value = process.env[key]?.toLowerCase()
   return value === "false" || value === "0"
@@ -27,6 +33,7 @@ export const Flag = {
   OTEL_EXPORTER_OTLP_ENDPOINT: process.env["OTEL_EXPORTER_OTLP_ENDPOINT"],
   OTEL_EXPORTER_OTLP_HEADERS: process.env["OTEL_EXPORTER_OTLP_HEADERS"],
 
+  OPENCODE_LOCAL_ONLY: enabledByDefault("OPENCODE_LOCAL_ONLY"),
   OPENCODE_AUTO_SHARE: truthy("OPENCODE_AUTO_SHARE"),
   OPENCODE_AUTO_HEAP_SNAPSHOT: truthy("OPENCODE_AUTO_HEAP_SNAPSHOT"),
   OPENCODE_GIT_BASH_PATH: process.env["OPENCODE_GIT_BASH_PATH"],

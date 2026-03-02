@@ -9,6 +9,7 @@ import { commands } from "./bindings"
 export const UPDATER_ENABLED = window.__OPENCODE__?.updaterEnabled ?? false
 
 export async function runUpdater({ alertOnFail }: { alertOnFail: boolean }) {
+  if (window.__OPENCODE__?.localOnly) return
   await initI18n()
 
   let update

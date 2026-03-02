@@ -285,6 +285,7 @@ const createPlatform = (): Platform => {
     })(),
 
     checkUpdate: async () => {
+      if (window.__OPENCODE__?.localOnly) return { updateAvailable: false }
       if (!UPDATER_ENABLED) return { updateAvailable: false }
       const next = await check().catch(() => null)
       if (!next) return { updateAvailable: false }

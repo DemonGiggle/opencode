@@ -491,6 +491,10 @@ export const layer = Layer.effect(
         for (const [key, value] of Object.entries(auth)) {
           if (value.type === "wellknown") {
             const url = key.replace(/\/+$/, "")
+            if (Flag.OPENCODE_LOCAL_ONLY) {
+              log.debug("skipping remote config fetch in local-only mode", { url })
+              continue
+            }
             process.env[value.key] = value.token
             log.debug("fetching remote config", { url: `${url}/.well-known/opencode` })
             const response = yield* Effect.promise(() => fetch(`${url}/.well-known/opencode`))
@@ -595,7 +599,10 @@ export const layer = Layer.effect(
         const activeAccount = Option.getOrUndefined(
           yield* accountSvc.active().pipe(Effect.catch(() => Effect.succeed(Option.none()))),
         )
-        if (activeAccount?.active_org_id) {
+        if (Flag.OPENCODE_LOCAL_ONLY && activeAccount?.active_org_id) {
+          log.debug("skipping remote account config in local-only mode", { accountID: activeAccount.id })
+        }
+        if (!Flag.OPENCODE_LOCAL_ONLY && activeAccount?.active_org_id) {
           const accountID = activeAccount.id
           const orgID = activeAccount.active_org_id
           const url = activeAccount.url

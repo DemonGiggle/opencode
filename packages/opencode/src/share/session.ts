@@ -23,6 +23,7 @@ export const layer = Layer.effect(
     const scope = yield* Scope.Scope
 
     const share = Effect.fn("SessionShare.share")(function* (sessionID: SessionID) {
+      if (Flag.OPENCODE_LOCAL_ONLY) throw new Error("Sharing is disabled in local-only mode")
       const conf = yield* cfg.get()
       if (conf.share === "disabled") throw new Error("Sharing is disabled in configuration")
       const result = yield* shareNext.create(sessionID)
@@ -41,6 +42,7 @@ export const layer = Layer.effect(
       const result = yield* session.create(input)
       if (result.parentID) return result
       const conf = yield* cfg.get()
+      if (Flag.OPENCODE_LOCAL_ONLY) return result
       if (!(Flag.OPENCODE_AUTO_SHARE || conf.share === "auto")) return result
       yield* share(result.id).pipe(Effect.ignore, Effect.forkIn(scope))
       return result

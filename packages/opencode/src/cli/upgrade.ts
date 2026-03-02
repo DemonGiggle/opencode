@@ -6,6 +6,7 @@ import { Installation } from "@/installation"
 import { InstallationVersion } from "@/installation/version"
 
 export async function upgrade() {
+  if (Flag.OPENCODE_LOCAL_ONLY) return
   const config = await AppRuntime.runPromise(Config.Service.use((cfg) => cfg.getGlobal()))
   if (config.autoupdate === false || Flag.OPENCODE_DISABLE_AUTOUPDATE) return
   const method = await AppRuntime.runPromise(Installation.Service.use((svc) => svc.method()))

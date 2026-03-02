@@ -165,6 +165,11 @@ export const { use: useHighlights, provider: HighlightsProvider } = createSimple
     }
 
     const start = (previous: string) => {
+      if (window.__OPENCODE__?.localOnly) {
+        markSeen()
+        return
+      }
+
       if (!settings.general.releaseNotes()) {
         markSeen()
         return

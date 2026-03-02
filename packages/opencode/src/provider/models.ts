@@ -141,7 +141,7 @@ export const Data = lazy(async () => {
     .then((m) => m.snapshot as Record<string, unknown>)
     .catch(() => undefined)
   if (snapshot) return snapshot
-  if (Flag.OPENCODE_DISABLE_MODELS_FETCH) return {}
+  if (Flag.OPENCODE_LOCAL_ONLY || Flag.OPENCODE_DISABLE_MODELS_FETCH) return {}
   return Flock.withLock(`models-dev:${filepath}`, async () => {
     const result = await Filesystem.readJson(modelsPath ?? filepath).catch(() => {})
     if (result) return result
@@ -161,6 +161,7 @@ export async function get() {
 }
 
 export async function refresh(force = false) {
+  if (Flag.OPENCODE_LOCAL_ONLY) return Data.reset()
   if (!Flag.OPENCODE_ENABLE_DEFAULT_MODELS) return Data.reset()
   if (skip(force)) return Data.reset()
   await Flock.withLock(`models-dev:${filepath}`, async () => {
@@ -177,6 +178,7 @@ export async function refresh(force = false) {
 }
 
 if (
+  !Flag.OPENCODE_LOCAL_ONLY &&
   !Flag.OPENCODE_DISABLE_MODELS_FETCH &&
   Flag.OPENCODE_ENABLE_DEFAULT_MODELS &&
   !process.argv.includes("--get-yargs-completions")

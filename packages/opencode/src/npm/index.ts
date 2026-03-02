@@ -10,6 +10,7 @@ import { Global } from "@opencode-ai/shared/global"
 import { EffectFlock } from "@opencode-ai/shared/util/effect-flock"
 
 import { makeRuntime } from "../effect/runtime"
+import { Flag } from "../flag/flag"
 
 export class InstallFailedError extends Schema.TaggedErrorClass<InstallFailedError>()("NpmInstallFailedError", {
   add: Schema.Array(Schema.String).pipe(Schema.optional),
@@ -109,6 +110,7 @@ export const layer = Layer.effect(
       )
 
     const outdated = Effect.fn("Npm.outdated")(function* (pkg: string, cachedVersion: string) {
+      if (Flag.OPENCODE_LOCAL_ONLY) return false
       const response = yield* Effect.tryPromise({
         try: () => fetch(`https://registry.npmjs.org/${pkg}`),
         catch: () => undefined,
@@ -147,6 +149,13 @@ export const layer = Layer.effect(
       if (yield* afs.existsSafe(dir)) {
         return resolveEntryPoint(name, path.join(dir, "node_modules", name))
       }
+      if (Flag.OPENCODE_LOCAL_ONLY) {
+        return yield* new InstallFailedError({
+          add: [pkg],
+          dir,
+          cause: new Error(`Package ${pkg} is not cached and local-only mode is enabled`),
+        })
+      }
 
       const tree = yield* reify({ dir, add: [pkg] })
       const first = tree.edgesOut.values().next().value?.to
@@ -155,6 +164,7 @@ export const layer = Layer.effect(
     }, Effect.scoped)
 
     const install: Interface["install"] = Effect.fn("Npm.install")(function* (dir, input) {
+      if (Flag.OPENCODE_LOCAL_ONLY) return
       const canWrite = yield* afs.access(dir, { writable: true }).pipe(
         Effect.as(true),
         Effect.orElseSucceed(() => false),

@@ -12,10 +12,12 @@ import type { SessionID } from "@/session/schema"
 import { Database, eq } from "@/storage"
 import { Config } from "@/config"
 import { Log } from "@/util"
+import { Flag } from "@/flag/flag"
 import { SessionShareTable } from "./share.sql"
 
 const log = Log.create({ service: "share-next" })
-const disabled = process.env["OPENCODE_DISABLE_SHARE"] === "true" || process.env["OPENCODE_DISABLE_SHARE"] === "1"
+const disabled =
+  Flag.OPENCODE_LOCAL_ONLY || process.env["OPENCODE_DISABLE_SHARE"] === "true" || process.env["OPENCODE_DISABLE_SHARE"] === "1"
 
 export type Api = {
   create: string

@@ -162,11 +162,20 @@ export const layer = Layer.effect(
         if (Flag.OPENCODE_PURE && cfg.plugin_origins?.length) {
           log.info("skipping external plugins in pure mode", { count: cfg.plugin_origins.length })
         }
-        if (plugins.length) yield* config.waitForDependencies()
+        const ready = Flag.OPENCODE_LOCAL_ONLY
+          ? plugins.filter((item) => {
+              const spec = Array.isArray(item.spec) ? item.spec[0] : item.spec
+              return spec.startsWith("file://")
+            })
+          : plugins
+        if (Flag.OPENCODE_LOCAL_ONLY && ready.length !== plugins.length) {
+          log.info("skipping non-file plugins in local-only mode", { count: plugins.length - ready.length })
+        }
+        if (!Flag.OPENCODE_LOCAL_ONLY && ready.length) yield* config.waitForDependencies()
 
         const loaded = yield* Effect.promise(() =>
           PluginLoader.loadExternal({
-            items: plugins,
+            items: ready,
             kind: "server",
             report: {
               start(candidate) {

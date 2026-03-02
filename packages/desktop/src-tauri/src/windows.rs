@@ -47,6 +47,14 @@ impl MainWindow {
             .ok()
             .map(|v| v.enabled)
             .unwrap_or(false);
+        let local_only = !matches!(
+            std::env::var("OPENCODE_LOCAL_ONLY")
+                .ok()
+                .as_deref()
+                .map(str::to_ascii_lowercase)
+                .as_deref(),
+            Some("0") | Some("false")
+        );
         let decorations = use_decorations();
         let window_builder = base_window_config(
             WebviewWindowBuilder::new(app, Self::LABEL, WebviewUrl::App("/".into())),
@@ -63,6 +71,7 @@ impl MainWindow {
             window.__OPENCODE__ ??= {{}};
             window.__OPENCODE__.updaterEnabled = {UPDATER_ENABLED};
             window.__OPENCODE__.wsl = {wsl_enabled};
+            window.__OPENCODE__.localOnly = {local_only};
           "#
         ));
 
