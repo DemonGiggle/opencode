@@ -1,6 +1,7 @@
 import { defineConfig } from "electron-vite"
 import appPlugin from "@opencode-ai/app/vite"
 import * as fs from "node:fs/promises"
+import { readFileSync } from "node:fs"
 
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
@@ -9,6 +10,9 @@ const channel = (() => {
 })()
 
 const OPENCODE_SERVER_DIST = "../opencode/dist/node"
+const opencodeDeps = Object.keys(
+  JSON.parse(readFileSync(new URL("../opencode/package.json", import.meta.url), "utf8")).dependencies ?? {},
+)
 
 const nodePtyPkg = `@lydell/node-pty-${process.platform}-${process.arch}`
 
@@ -21,7 +25,7 @@ export default defineConfig({
       rollupOptions: {
         input: { index: "src/main/index.ts" },
       },
-      externalizeDeps: { include: [nodePtyPkg] },
+      externalizeDeps: { include: [nodePtyPkg, ...opencodeDeps] },
     },
     plugins: [
       {

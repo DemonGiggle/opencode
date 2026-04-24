@@ -195,18 +195,19 @@ test("OPENCODE_ENABLE_DEFAULT_MODELS disabled blocks models.dev providers", asyn
   ModelsDev.Data.reset()
 
   try {
-    await Instance.provide({
-      directory: tmp.path,
-      init: async () => {
-        Env.set("ANTHROPIC_API_KEY", "test-api-key")
-      },
-      fn: async () => {
-        const providers = await Provider.list()
-        expect(providers["anthropic"]).toBeUndefined()
-        expect(providers["internal"]).toBeDefined()
-        expect(providers["internal"].models["internal-model"]).toBeDefined()
-      },
-    })
+      await Instance.provide({
+        directory: tmp.path,
+        init: async () => {
+          set("ANTHROPIC_API_KEY", "test-api-key")
+        },
+        fn: async () => {
+          const providers = await list()
+          const internal = ProviderID.make("internal")
+          expect(providers[ProviderID.anthropic]).toBeUndefined()
+          expect(providers[internal]).toBeDefined()
+          expect(providers[internal].models["internal-model"]).toBeDefined()
+        },
+      })
   } finally {
     ;(Flag as { OPENCODE_ENABLE_DEFAULT_MODELS: boolean }).OPENCODE_ENABLE_DEFAULT_MODELS = originalEnabled
     ;(Flag as { OPENCODE_MODELS_PATH: string | undefined }).OPENCODE_MODELS_PATH = originalPath
