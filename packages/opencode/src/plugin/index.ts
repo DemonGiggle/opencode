@@ -117,6 +117,12 @@ export const layer = Layer.effect(
           bridge.fork(bus.publish(Session.Event.Error, { error: new NamedError.Unknown({ message }).toObject() }))
         }
 
+        const cfg = yield* config.get()
+        if (Flag.OPENCODE_LOCAL_ONLY) {
+          log.info("skipping plugins in local-only mode")
+          return { hooks }
+        }
+
         const { Server } = yield* Effect.promise(() => import("../server/server"))
 
         const client = createOpencodeClient({
@@ -129,7 +135,6 @@ export const layer = Layer.effect(
             : undefined,
           fetch: async (...args) => (await Server.Default()).app.fetch(...args),
         })
-        const cfg = yield* config.get()
         const input: PluginInput = {
           client,
           project: ctx.project,

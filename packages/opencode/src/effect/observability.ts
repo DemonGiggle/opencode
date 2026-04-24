@@ -6,7 +6,7 @@ import { Flag } from "@/flag/flag"
 import { InstallationChannel, InstallationVersion } from "@/installation/version"
 import { ensureProcessMetadata } from "@/util/opencode-process"
 
-const base = Flag.OTEL_EXPORTER_OTLP_ENDPOINT
+const base = Flag.OPENCODE_LOCAL_ONLY ? undefined : Flag.OTEL_EXPORTER_OTLP_ENDPOINT
 export const enabled = !!base
 const processID = crypto.randomUUID()
 

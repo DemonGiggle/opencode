@@ -7,6 +7,7 @@ import { Instance } from "../project/instance"
 import { Truncate } from "../tool"
 import { Auth } from "../auth"
 import { ProviderTransform } from "../provider"
+import { Flag } from "../flag/flag"
 
 import PROMPT_GENERATE from "./generate.txt"
 import PROMPT_COMPACTION from "./prompt/compaction.txt"
@@ -334,7 +335,8 @@ export const layer = Layer.effect(
         const model = input.model ?? (yield* provider.defaultModel())
         const resolved = yield* provider.getModel(model.providerID, model.modelID)
         const language = yield* provider.getLanguage(resolved)
-        const tracer = cfg.experimental?.openTelemetry
+        const telemetry = !Flag.OPENCODE_LOCAL_ONLY && cfg.experimental?.openTelemetry
+        const tracer = telemetry
           ? Option.getOrUndefined(yield* Effect.serviceOption(OtelTracer.OtelTracer))
           : undefined
 
@@ -348,7 +350,7 @@ export const layer = Layer.effect(
 
         const params = {
           experimental_telemetry: {
-            isEnabled: cfg.experimental?.openTelemetry,
+            isEnabled: telemetry,
             tracer,
             metadata: {
               userId: cfg.username ?? "unknown",
