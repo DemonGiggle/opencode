@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama-custom": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "QBit Brain",
+
+      "options": {
+        "baseURL": "http://10.2.136.140:11434/v1"
+      },
+
+      "models": {
+          "gemma4:31b": {
+              "name" : "gemma4:26b"
+          },
+          "qwen3.6:35b": {
+              "name" : "qwen3.6:35b"
+          },
+          "gemma4:e4b": {
+              "name" : "gemma4:e4b"
+          }
+      }
+    }
+  }
+}
