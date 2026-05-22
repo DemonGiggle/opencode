@@ -36,3 +36,20 @@ bun run --cwd packages/desktop tauri build
 ```bash
 ./qbit-installer/install-config-linux.sh
 ```
+
+## Install Windows
+
+```powershell
+.\qbit-installer\install-config-windows.ps1
+```
+
+This does both:
+
+- copy `opencode.json` to `%USERPROFILE%\.config\opencode\opencode.json`
+- update Windows desktop model/provider state
+
+Optional:
+
+```powershell
+.\qbit-installer\install-config-windows.ps1 -ProviderID ollama-custom -ModelID qwen3.6:35b
+```
