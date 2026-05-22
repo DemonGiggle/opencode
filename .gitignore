@@ -29,3 +29,5 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+qbit-installer/windows
+qbit-installer/linux-x86-64
