@@ -10,7 +10,7 @@
       },
 
       "models": {
-          "gemma4:31b": {
+          "gemma4:26b": {
               "name" : "gemma4:26b"
           },
           "qwen3.6:35b": {
